@@ -1,0 +1,14 @@
+/**
+ * A better comment
+ */
+def hello_word()
+  puts(
+       "hello world"
+      )
+end
+
+def `hello a end`
+    `me is cool`
+end
+
+// cool this works
