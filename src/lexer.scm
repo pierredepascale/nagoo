@@ -50,14 +50,14 @@
           ((char=? ch #\return) (read-char port) '(newline))
           ((char=? ch #\newline) (read-char port) '(newline))
           ((char=? ch #\~) (read-char port) (list (read-name port)))
-          ((char=? ch #\/) (read-comment port) (really-read-lex port))
+          ((char=? ch #\/) (read-comment-maybe port) (really-read-lex port))
           (else (error "unknown token beginning with ~a" ch)))))
 
 (define (read-comment-maybe port)
   (read-char port)
   (let ((ch (read-char port)))
     (cond ((eof-object? ch) '/)
-          ((char=? ch #\/) (skip-single-line-comment port))
+          ((char=? ch #\/) (read-single-line-comment port))
           ((char=? ch #\*) (read-multi-line-comment port))
           (else (error "unknown lex starting with /")))))
 
@@ -78,6 +78,14 @@
           ((char=? ch #\/) ch)
           (else (read-multi-line-comment port)))))
 
+(define (operator-char? ch)
+  (memq ch (#\- #\% #\& #\: #\+ #\- #\| #\= #\* #\/ #\< #\> #\? #\!)))
+
+(define (read-operator port)
+  (string->symbol
+   (list->string
+    (let lp ((ch (peek-char port)))
+      (cond ((eof-object? ch)
 (define (read-num port)
   (let loop ((ch (peek-char port))
              (n 0))
@@ -136,7 +144,7 @@
 
 ;'(#\_ #\~ #\- #\% #\& #\: #\+ #\= #\* #\/ #\< #\> #\? #\!))))
       
-(define (test-lexer file-name)
+(define (lex-file file-name)
   (with-input-from-file file-name
     (lambda ()
       (let lp ((lex (read-lex (current-input-port))))
